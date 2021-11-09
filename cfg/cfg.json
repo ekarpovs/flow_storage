@@ -1,0 +1,8 @@
+  {
+    "info": "Configuration of flow storage",
+    "user-actions-paths": [
+      "../modules-and-worksheets/modules",
+      "../modules-and-worksheets/modules-common"
+    ],
+    "storage-path": "../data/storage"
+  }
