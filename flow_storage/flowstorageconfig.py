@@ -4,9 +4,10 @@ class FlowStorageConfig():
   '''
 
   def __init__(self, path: str) -> None:
-      self._path = path 
+      self._storage_path = path 
       return
-      
-  def path(self) -> str:
-    return self._path
+
+  @property    
+  def storage_path(self) -> str:
+    return self._storage_path
 

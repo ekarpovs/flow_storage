@@ -18,6 +18,12 @@ class FlowStateIOData():
   def data_refs(self) -> List[FlowDataRef]:
     return self._data_refs 
 
+  def get_ext_data_ref(self, int_ref: str) -> FlowDataRef:
+    for data_ref in self._data_refs:
+      if data_ref.int_ref == int_ref:
+        return data_ref
+    return None
+  
   def get_data_ref(self, ext_ref: str) -> FlowDataRef:
     for data_ref in self._data_refs:
       if data_ref.ext_ref == ext_ref:

@@ -3,15 +3,15 @@
 
 from typing import Dict, List
 
-from flow_storage.flowdataref import FlowDataRef
-
+from .flowdataref import FlowDataRef
 from .flowstateiodata import FlowStateIOData
+from .flowtypes import FlowDataType, FlowIOType
 
 class FlowStateStorage():
   def __init__(self, state_id: str) -> None:
       self._state_id = state_id
-      self._input_data: FlowStateIOData = None
-      self._output_data: FlowStateIOData = None
+      self._input_data = FlowStateIOData(FlowIOType.IN)
+      self._output_data = FlowStateIOData(FlowIOType.OUT)
 
   @property
   def state_id(self) -> str:

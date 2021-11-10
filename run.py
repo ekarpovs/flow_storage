@@ -23,7 +23,6 @@ def parseArgs():
   kwargs = dict((k,v) for k,v in vars(args).items() if k!="message_type")
   return kwargs
 
-
 # Reads the string from the file, parses the JSON data, 
 # populates a Python dict with the data
 def readJson(ffn):

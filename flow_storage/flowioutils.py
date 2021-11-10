@@ -1,4 +1,5 @@
 import os, re, os.path
+import cv2
 import numpy as np
 from typing import Callable, Dict, List
 
@@ -17,34 +18,80 @@ class FlowIOUtils():
 
   def reader(self, rtype: FlowDataType) -> Callable:
     readers = {
-      FlowDataType.IMAGE: self._image_reader,
       FlowDataType.JSON: self._json_reader,
+      FlowDataType.IMAGE: self._image_reader,
       FlowDataType.POINTS: self._points_reader
     }
     return readers.get(rtype)
 
   def writer(self, rtype: FlowDataType) -> Callable:
     writers = {
-      FlowDataType.IMAGE: self._image_writer,
       FlowDataType.JSON: self._json_writer,
+      FlowDataType.IMAGE: self._image_writer,
       FlowDataType.POINTS: self._points_writer
     }
     return writers.get(rtype)
 
-  def _image_reader(self, pat):
+  def cleaner(self, rtype: FlowDataType) -> Callable:
+    cleaners = {
+      FlowDataType.JSON: self._json_cleaner,
+      FlowDataType.IMAGE: self._image_cleaner,
+      FlowDataType.POINTS: self._points_cleaner
+    }
+    return cleaners.get(rtype)
+
+
+  @staticmethod
+  def _image_reader(ffn: str) -> np.dtype:
+    ffn = f'{ffn}.jpg'
+    return cv2.imread(ffn)
+
+  @staticmethod
+  def _json_reader(ffn: str) -> Dict:
+    return {}
+
+  @staticmethod
+  def _points_reader(ffn: str) -> List:
+    return []
+
+  @staticmethod
+  def _image_writer(ffn: str, image: np.dtype) -> None:
+    ffn = f'{ffn}.jpg'
+    cv2.imwrite(ffn, image)
+    return
+
+  @staticmethod
+  def _json_writer(ffn: str, data: Dict) -> None:
+    ffn = f'{ffn}.json'
     pass
 
-  def _json_reader(self):
+  def _points_writer(ffn: str, data: List) -> None:
+    ffn = f'{ffn}.pts'
     pass
 
-  def _points_reader(self):
-    pass
+  @staticmethod
+  def _image_cleaner(ffn: str) -> None:
+    ffn = f'{ffn}.jpg'
+    if os.path.exists (ffn) :
+      os.remove (ffn)
+    else :
+      print(f'The {ffn} does not exist')
+    return
 
-  def _image_writer(self):
-    pass
+  @staticmethod
+  def _json_cleaner(ffn: str) -> None:
+    ffn = f'{ffn}.json'
+    if os.path.exists (ffn) :
+      os.remove (ffn)
+    else :
+      print(f'The {ffn} does not exist')
+    return
 
-  def _json_writer(self):
-    pass
-
-  def _points_writer(self):
-    pass
+  @staticmethod
+  def _points_cleaner(ffn: str) -> None:
+    ffn = f'{ffn}.pts'
+    if os.path.exists (ffn) :
+      os.remove (ffn)
+    else :
+      print(f'The {ffn} does not exist')
+    return
