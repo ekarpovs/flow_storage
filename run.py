@@ -47,59 +47,7 @@ def main(**kwargs):
 
   config = FlowStorageConfig(path)
   storage = FlowStorage(config, ws)
-
-  # # State 0
-  # # Create a state storage item
-  # state_storage = FlowStateStorage('0-begin')
-  # # Create input data container for the state
-  # state_storage.input_data = FlowStateIOData(FlowIOType.IN)
-  # # Create output data container for the state
-  # state_storage.output_data = FlowStateIOData(FlowIOType.OUT)
-  # #  Create input data references
-  # internal_ref = 'image'
-  # external_ref = 'image'
-  # data_ref = FlowDataRef(internal_ref, external_ref, FlowDataType.IMAGE)
-  # state_storage.output_data.set_data_ref(data_ref)
-  # # Add into storage
-  # storage.set_state_storage_by_idx(0, state_storage)
-
-  # # State 1
-  # # Create a state storage item
-  # state_storage = FlowStateStorage('1-crop')
-  # # Create input data container for the state
-  # state_storage.input_data = FlowStateIOData(FlowIOType.IN)
-  # #  Create input data references
-  # internal_ref = 'image'
-  # external_ref = 'image'
-  # data_ref = FlowDataRef(internal_ref, external_ref, FlowDataType.IMAGE)
-  # state_storage.input_data.set_data_ref(data_ref)
-  # # Create output data container for the state
-  # state_storage.output_data = FlowStateIOData(FlowIOType.OUT)
-  # #  Create input data references
-  # internal_ref = 'image'
-  # external_ref = 'image'
-  # data_ref = FlowDataRef(internal_ref, external_ref, FlowDataType.IMAGE)
-  # state_storage.output_data.set_data_ref(data_ref)
-  # # Add into storage
-  # storage.set_state_storage_by_idx(1, state_storage)
-
-  # # State 2
-  # # Create a state storage item
-  # state_storage = FlowStateStorage('2-end')
-  # # Create input data container for the state
-  # state_storage.input_data = FlowStateIOData(FlowIOType.IN)
-  # #  Create input data references
-  # internal_ref = 'image'
-  # external_ref = 'image'
-  # data_ref = FlowDataRef(internal_ref, external_ref, FlowDataType.IMAGE)
-  # state_storage.input_data.set_data_ref(data_ref)
-  # # Create output data container for the state
-  # state_storage.output_data = FlowStateIOData(FlowIOType.OUT)
-  # # Add into storage
-  # storage.set_state_storage_by_idx(2, state_storage)
-
-  return
-  
+ 
   for state in storage.storage:
     print('state_id', state.state_id)
     io_data = state.input_data
