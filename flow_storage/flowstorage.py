@@ -59,7 +59,8 @@ class FlowStorage():
           item = data.get(ref.int_ref)
           utils = FlowIOUtils()
           writer = utils.writer(ref.data_type)
-          writer(ffn, item)
+          if item is not None:
+            writer(ffn, item)
         break
     return
 
