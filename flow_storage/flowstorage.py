@@ -49,6 +49,21 @@ class FlowStorage():
         break
     return data
 
+  def get_state_output_data(self, state_id: str) -> Dict:
+    data = {}
+    for state_storage in self.storage:
+      if state_storage.state_id == state_id:
+        refs = state_storage.output_data.data_refs
+        for ref in refs:
+          # read the state data from the external storage
+          ffn = f'{self._config.storage_path}/{ref.ext_ref}'
+          utils = FlowIOUtils()
+          reader = utils.reader(ref.data_type)
+          data[ref.int_ref] = reader(ffn)
+        break
+    return data
+
+
   def set_state_output_data(self, state_id: str, data: Dict) -> None:
     for state_storage in self.storage:
       if state_storage.state_id == state_id:
