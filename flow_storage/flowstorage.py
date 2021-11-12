@@ -113,16 +113,25 @@ class FlowStorage():
     return None
 
 
-  def set_state_input_refs(self, state_id: str, in_data: List[FlowDataRef]) -> None:
+  def set_state_input_refs(self, state_id: str, in_data_refs: List[FlowDataRef]) -> None:
     for state_storage in self.storage:
       if state_storage.state_id == state_id:
-        state_storage.input_data = in_data
+        if len(state_storage.input_data.data_refs) == 0:
+          state_storage.input_data.data_refs = in_data_refs
+        else:
+          refs = state_storage.input_data.data_refs
+          for ref in refs:
+            for in_ref in in_data_refs:
+              if ref.int_ref == in_ref.int_ref and ref.ext_ref == in_ref.ext_ref:
+                continue
+              refs.append(in_ref)
+          state_storage.input_data.data_refs = refs
     return
 
   def get_state_output_refs(self, state_id: str) -> List[FlowDataRef]:
     for state_storage in self.storage:
       if state_storage.state_id == state_id:
-        return state_storage.output_data
+        return state_storage.output_data.data_refs
     return None
 
   def set_state_output_refs(self, state_id: str, out_data: List[FlowDataRef]) -> None:
@@ -169,8 +178,8 @@ class FlowStorage():
           eref = f'{i-1}-{exec}-{inref[0: inref.index(":")].strip()}'
           if aliases is not None:
             eref = aliases.get(iref, None)
-          data_ref = FlowDataRef(iref, eref, dtype)
-          st_storage.input_data.set_data_ref(data_ref)
+            data_ref = FlowDataRef(iref, eref, dtype)
+            st_storage.input_data.set_data_ref(data_ref)
       
       #  output data references:
       for outref in output_refs:
