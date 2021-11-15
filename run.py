@@ -8,6 +8,8 @@ import sys
 import json
 import argparse
 
+from flow_model import FlowModel
+
 from flow_storage import *
 
 # Construct the argument parser and parse the arguments
@@ -44,8 +46,9 @@ def main(**kwargs):
   path = cfg.get('storage-path')
   ws = readJson(kwargs.get("ws"))
 
+  model = FlowModel(ws)
   config = FlowStorageConfig(path)
-  storage = FlowStorage(config, ws)
+  storage = FlowStorage(config, model.get_as_ws())
  
   for state in storage.storage:
     print('state_id', state.state_id)
