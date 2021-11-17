@@ -35,12 +35,15 @@ class FlowStorage():
         return state_storage.input_data.data_refs
     return None
 
-  def get_state_input_data(self, state_id: str) -> Dict:
+  def get_state_input_data(self, state_id: str, aliases: Dict[str, str]) -> Dict:
     data = {}
     for state_storage in self.storage:
       if state_storage.state_id == state_id:
         refs = state_storage.input_data.data_refs
         for ref in refs:
+          if len(aliases) > 0:
+            if ref.ext_ref not in aliases.values():
+              continue
           # read the state data from the external storage
           ffn = f'{self._config.storage_path}/{ref.ext_ref}'
           utils = FlowIOUtils()
