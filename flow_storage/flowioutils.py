@@ -44,7 +44,7 @@ class FlowIOUtils():
   @staticmethod
   def _image_reader(ffn: str) -> np.dtype:
     ffn = f'{ffn}.jpg'
-    return cv2.imread(ffn)
+    return cv2.imread(ffn, cv2.IMREAD_UNCHANGED)
 
   @staticmethod
   def _json_reader(ffn: str) -> Dict:
