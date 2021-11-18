@@ -1,3 +1,4 @@
+import copy
 from typing import Dict, List
 import operation_loader
 
@@ -17,6 +18,7 @@ class FlowStorage():
       self._config = config
       self._ws = ws
       self._storage: List[FlowStateStorage] = []
+      self.utils = FlowIOUtils()
       self._init_strorage()
       return
       
@@ -42,12 +44,11 @@ class FlowStorage():
         refs = state_storage.input_data.data_refs
         for ref in refs:
           if len(aliases) > 0:
-            if ref.ext_ref not in aliases.values():
-              continue
+            if ref.int_ref in aliases.keys():
+              ref.ext_ref = aliases.get(ref.int_ref)  
           # read the state data from the external storage
           ffn = f'{self._config.storage_path}/{ref.ext_ref}'
-          utils = FlowIOUtils()
-          reader = utils.reader(ref.data_type)
+          reader = self.utils.reader(ref.data_type)
           data[ref.int_ref] = reader(ffn)
         break
     return data
@@ -59,9 +60,8 @@ class FlowStorage():
         refs = state_storage.output_data.data_refs
         for ref in refs:
           # read the state data from the external storage
+          reader = self.utils.reader(ref.data_type)
           ffn = f'{self._config.storage_path}/{ref.ext_ref}'
-          utils = FlowIOUtils()
-          reader = utils.reader(ref.data_type)
           data[ref.int_ref] = reader(ffn)
         break
     return data
@@ -73,12 +73,11 @@ class FlowStorage():
         refs = state_storage.output_data.data_refs
         for ref in refs:
           # write the state data to the external storage
+          writer = self.utils.writer(ref.data_type)
           ffn = f'{self._config.storage_path}/{ref.ext_ref}'
-          item = data.get(ref.int_ref)
-          utils = FlowIOUtils()
-          writer = utils.writer(ref.data_type)
-          if item is not None:
-            writer(ffn, item)
+          stored_item = data.get(ref.int_ref)
+          if stored_item is not None:
+            writer(ffn, stored_item)
         break
     return
 
@@ -88,9 +87,8 @@ class FlowStorage():
         refs = state_storage.input_data.data_refs
         for ref in refs:
           # clean the state data from the external storage
+          cleaner = self.utils.cleaner(ref.data_type)
           ffn = f'{self._config.storage_path}/{ref.ext_ref}'
-          utils = FlowIOUtils()
-          cleaner = utils.cleaner(ref.data_type)
           cleaner(ffn)
         break
     return
@@ -101,9 +99,8 @@ class FlowStorage():
         refs = state_storage.output_data.data_refs
         for ref in refs:
           # clean the state data from the external storage
+          cleaner = self.utils.cleaner(ref.data_type)
           ffn = f'{self._config.storage_path}/{ref.ext_ref}'
-          utils = FlowIOUtils()
-          cleaner = utils.cleaner(ref.data_type)
           cleaner(ffn)
         break
     return
@@ -121,14 +118,14 @@ class FlowStorage():
       if state_storage.state_id == state_id:
         if len(state_storage.input_data.data_refs) == 0:
           state_storage.input_data.data_refs = in_data_refs
+          break;
         else:
-          refs = state_storage.input_data.data_refs
-          for ref in refs:
+          exits_refs: List[FlowDataRef] = copy.deepcopy(state_storage.input_data.data_refs)
+          for ref in exits_refs:
             for in_ref in in_data_refs:
               if ref.int_ref == in_ref.int_ref and ref.ext_ref == in_ref.ext_ref:
                 continue
-              refs.append(in_ref)
-          state_storage.input_data.data_refs = refs
+              state_storage.input_data.data_refs.append(in_ref)
     return
 
   def get_state_output_refs(self, state_id: str) -> List[FlowDataRef]:
@@ -151,11 +148,13 @@ class FlowStorage():
     return  
   
   @staticmethod
-  def _data_type_str_to_flow_type(dt_str: str):
-    dtype = FlowDataType.IMAGE
-    # if dt_str == 'np.dtype':
-    #   dtype = FlowDataType.IMAGE
-    return dtype
+  def _data_type_str_to_flow_type(dt_str: str) -> FlowDataType:
+    data_types = {
+      "np.dtype" : FlowDataType.IMAGE,
+      "List[np.ndarray]" : FlowDataType.CNTRS,
+      "np.ndarray" : FlowDataType.KPNTS,
+    }
+    return data_types.get(dt_str, FlowDataType.JSON)
 
 
   def _init_strorage(self) -> None:
@@ -181,8 +180,9 @@ class FlowStorage():
           eref = f'{i-1}-{exec}-{inref[0: inref.index(":")].strip()}'
           if aliases is not None:
             eref = aliases.get(iref, None)
-            data_ref = FlowDataRef(iref, eref, dtype)
-            st_storage.input_data.set_data_ref(data_ref)
+            if eref is not None:
+              data_ref = FlowDataRef(iref, eref, dtype)
+              st_storage.input_data.set_data_ref(data_ref)
       
       #  output data references:
       for outref in output_refs:

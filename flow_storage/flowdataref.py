@@ -18,6 +18,11 @@ class FlowDataRef():
   def ext_ref(self) -> str:
     return self._ext_ref
 
+  @ext_ref.setter
+  def ext_ref(self, ref) -> str:
+    self._ext_ref = ref
+    return 
+    
   @property
   def data_type(self) -> FlowDataType:
     return self._data_type

@@ -1,6 +1,7 @@
 import os, re, os.path
 import cv2
 import numpy as np
+import json
 from typing import Callable, Dict, List
 
 from .flowtypes import FlowDataType
@@ -18,27 +19,27 @@ class FlowIOUtils():
 
   def reader(self, rtype: FlowDataType) -> Callable:
     readers = {
-      FlowDataType.JSON: self._json_reader,
       FlowDataType.IMAGE: self._image_reader,
-      FlowDataType.POINTS: self._points_reader
+      FlowDataType.JSON: self._json_reader,
+      FlowDataType.CNTRS: self._contours_reader,
+      FlowDataType.KPNTS: self._keypoints_reader
     }
     return readers.get(rtype)
 
   def writer(self, rtype: FlowDataType) -> Callable:
     writers = {
-      FlowDataType.JSON: self._json_writer,
       FlowDataType.IMAGE: self._image_writer,
-      FlowDataType.POINTS: self._points_writer
+      FlowDataType.JSON: self._json_writer,
+      FlowDataType.CNTRS: self._contours_writer,
+      FlowDataType.KPNTS: self._keypoints_writer
     }
     return writers.get(rtype)
 
   def cleaner(self, rtype: FlowDataType) -> Callable:
     cleaners = {
-      FlowDataType.JSON: self._json_cleaner,
-      FlowDataType.IMAGE: self._image_cleaner,
-      FlowDataType.POINTS: self._points_cleaner
+      FlowDataType.IMAGE: self._image_cleaner
     }
-    return cleaners.get(rtype)
+    return cleaners.get(rtype, self._json_cleaner)
 
 
   @staticmethod
@@ -48,11 +49,26 @@ class FlowIOUtils():
 
   @staticmethod
   def _json_reader(ffn: str) -> Dict:
-    return {}
+    ffn = f'{ffn}.json'
+    with open(ffn, 'rt') as f:
+      data = json.load(f)
+      return data
 
   @staticmethod
-  def _points_reader(ffn: str) -> List:
-    return []
+  def _contours_reader(ffn: str) -> List[np.ndarray]:
+    ffn = f'{ffn}.json'
+    with open(ffn, 'rt') as f:
+      ld = json.load(f)
+      data = [np.array(d) for d in ld]
+      return data
+
+  @staticmethod
+  def _keypoints_reader(ffn: str) -> np.ndarray:
+    ffn = f'{ffn}.json'
+    with open(ffn, 'rt') as f:
+      data = np.array(json.load(f))
+      return data
+
 
   @staticmethod
   def _image_writer(ffn: str, image: np.dtype) -> None:
@@ -63,11 +79,25 @@ class FlowIOUtils():
   @staticmethod
   def _json_writer(ffn: str, data: Dict) -> None:
     ffn = f'{ffn}.json'
-    pass
+    with open(ffn, 'w') as fp:
+      json.dump(data, fp, indent=2)
+    return
 
-  def _points_writer(ffn: str, data: List) -> None:
-    ffn = f'{ffn}.pts'
-    pass
+  @staticmethod
+  def _contours_writer(ffn: str, data: List[np.ndarray]) -> None:
+    ffn = f'{ffn}.json'
+    sd = [d.tolist() for d in data]
+    with open(ffn, 'w') as fp:
+      json.dump(sd, fp, indent=2)
+    return
+
+  @staticmethod
+  def _keypoints_writer(ffn: str, data: np.ndarray) -> None:
+    ffn = f'{ffn}.json'
+    with open(ffn, 'w') as fp:
+      json.dump(data.tolist(), fp, indent=2)
+    return
+
 
   @staticmethod
   def _image_cleaner(ffn: str) -> None:
@@ -81,15 +111,6 @@ class FlowIOUtils():
   @staticmethod
   def _json_cleaner(ffn: str) -> None:
     ffn = f'{ffn}.json'
-    if os.path.exists (ffn) :
-      os.remove (ffn)
-    else :
-      print(f'The {ffn} does not exist')
-    return
-
-  @staticmethod
-  def _points_cleaner(ffn: str) -> None:
-    ffn = f'{ffn}.pts'
     if os.path.exists (ffn) :
       os.remove (ffn)
     else :
