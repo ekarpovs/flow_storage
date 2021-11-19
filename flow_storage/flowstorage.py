@@ -122,6 +122,8 @@ class FlowStorage():
         else:
           exits_refs: List[FlowDataRef] = copy.deepcopy(state_storage.input_data.data_refs)
           for ref in exits_refs:
+            if ref.is_alias:
+              continue
             for in_ref in in_data_refs:
               if ref.int_ref == in_ref.int_ref and ref.ext_ref == in_ref.ext_ref:
                 continue
@@ -181,7 +183,7 @@ class FlowStorage():
           if aliases is not None:
             eref = aliases.get(iref, None)
             if eref is not None:
-              data_ref = FlowDataRef(iref, eref, dtype)
+              data_ref = FlowDataRef(iref, eref, dtype, True)
               st_storage.input_data.set_data_ref(data_ref)
       
       #  output data references:

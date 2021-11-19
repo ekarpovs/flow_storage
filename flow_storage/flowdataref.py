@@ -4,10 +4,11 @@ from .flowtypes import FlowDataType
 
 
 class FlowDataRef():
-  def __init__(self, int_ref: str, ext_ref: str, data_type: FlowDataType) -> None:
+  def __init__(self, int_ref: str, ext_ref: str, data_type: FlowDataType, is_alias: bool=False) -> None:
       self._int_ref = int_ref
       self._ext_ref = ext_ref
       self._data_type = data_type
+      self.is_alias = is_alias
       return
 
   @property
