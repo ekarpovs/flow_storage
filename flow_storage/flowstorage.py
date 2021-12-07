@@ -126,7 +126,7 @@ class FlowStorage():
               continue
             for in_ref in in_data_refs:
               if ref.int_ref == in_ref.int_ref and ref.ext_ref == in_ref.ext_ref:
-                continue
+                break
               state_storage.input_data.data_refs.append(in_ref)
     return
 
