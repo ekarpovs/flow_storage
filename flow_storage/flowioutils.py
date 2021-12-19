@@ -2,7 +2,7 @@ import os, re, os.path
 import cv2
 import numpy as np
 import json
-from typing import Callable, Dict, List
+from typing import Callable, Dict, List, Tuple
 
 from .flowtypes import FlowDataType
 
@@ -19,33 +19,44 @@ class FlowIOUtils():
 
   def reader(self, rtype: FlowDataType) -> Callable:
     readers = {
-      FlowDataType.IMAGE: self._image_reader,
+      FlowDataType.CV2_IMAGE: self._cv2_image_reader,
+      FlowDataType.NP_ARRAY: self._np_array_reader,
+      FlowDataType.LIST_NP_ARRAYS: self._list_np_arrays_reader,
       FlowDataType.JSON: self._json_reader,
-      FlowDataType.CNTRS: self._contours_reader,
+      FlowDataType.LIST_TUPLES: self._list_tuples_reader,
       FlowDataType.KPNTS: self._keypoints_reader
     }
     return readers.get(rtype)
 
   def writer(self, rtype: FlowDataType) -> Callable:
     writers = {
-      FlowDataType.IMAGE: self._image_writer,
+      FlowDataType.CV2_IMAGE: self._cv2_image_writer,
+      FlowDataType.NP_ARRAY: self._np_array_writer,
+      FlowDataType.LIST_NP_ARRAYS: self._list_np_arrays_writer,
       FlowDataType.JSON: self._json_writer,
-      FlowDataType.CNTRS: self._contours_writer,
+      FlowDataType.LIST_TUPLES: self._list_tuples_writer,
       FlowDataType.KPNTS: self._keypoints_writer
     }
     return writers.get(rtype)
 
   def cleaner(self, rtype: FlowDataType) -> Callable:
     cleaners = {
-      FlowDataType.IMAGE: self._image_cleaner
+      FlowDataType.CV2_IMAGE: self._data_cleaner('jpg'),
+      FlowDataType.NP_ARRAY: self._data_cleaner('npy'),
+      FlowDataType.LIST_NP_ARRAYS: self._data_cleaner('json')
     }
-    return cleaners.get(rtype, self._json_cleaner)
+    return cleaners.get(rtype, self._data_cleaner('json'))
 
 
   @staticmethod
-  def _image_reader(ffn: str) -> np.dtype:
+  def _cv2_image_reader(ffn: str) -> np.dtype:
     ffn = f'{ffn}.jpg'
     return cv2.imread(ffn, cv2.IMREAD_UNCHANGED)
+
+  @staticmethod
+  def _np_array_reader(ffn: str) -> np.dtype:
+    ffn = f'{ffn}.npy'
+    return np.load(ffn)
 
   @staticmethod
   def _json_reader(ffn: str) -> Dict:
@@ -55,12 +66,22 @@ class FlowIOUtils():
       return data
 
   @staticmethod
-  def _contours_reader(ffn: str) -> List[np.ndarray]:
+  def _list_np_arrays_reader(ffn: str) -> List[np.ndarray]:
     ffn = f'{ffn}.json'
     with open(ffn, 'rt') as f:
       ld = json.load(f)
       data = [np.array(d) for d in ld]
       return data
+
+
+  @staticmethod
+  def _list_tuples_reader(ffn: str) -> List[np.ndarray]:
+    ffn = f'{ffn}.json'
+    with open(ffn, 'rt') as f:
+      ld = json.load(f)
+      data = [np.array(d) for d in ld]
+      return data
+
 
   @staticmethod
   def _keypoints_reader(ffn: str) -> np.ndarray:
@@ -71,9 +92,23 @@ class FlowIOUtils():
 
 
   @staticmethod
-  def _image_writer(ffn: str, image: np.dtype) -> None:
+  def _cv2_image_writer(ffn: str, arr: np.dtype) -> None:
     ffn = f'{ffn}.jpg'
-    cv2.imwrite(ffn, image)
+    cv2.imwrite(ffn, arr)
+    return
+
+  @staticmethod
+  def _np_array_writer(ffn: str, arr: np.dtype) -> None:
+    ffn = f'{ffn}.npy'
+    np.save(ffn, arr)
+    return
+
+  @staticmethod
+  def _list_np_arrays_writer(ffn: str, data: List[np.ndarray]) -> None:
+    ffn = f'{ffn}.json'
+    sd = [d.tolist() for d in data]
+    with open(ffn, 'w') as fp:
+      json.dump(sd, fp, indent=2)
     return
 
   @staticmethod
@@ -84,11 +119,10 @@ class FlowIOUtils():
     return
 
   @staticmethod
-  def _contours_writer(ffn: str, data: List[np.ndarray]) -> None:
+  def _list_tuples_writer(ffn: str, data: List[Tuple]) -> None:
     ffn = f'{ffn}.json'
-    sd = [d.tolist() for d in data]
     with open(ffn, 'w') as fp:
-      json.dump(sd, fp, indent=2)
+      json.dump(data, fp, indent=2)
     return
 
   @staticmethod
@@ -100,19 +134,14 @@ class FlowIOUtils():
 
 
   @staticmethod
-  def _image_cleaner(ffn: str) -> None:
-    ffn = f'{ffn}.jpg'
-    if os.path.exists (ffn) :
-      os.remove (ffn)
-    else :
-      print(f'The {ffn} does not exist')
-    return
-
-  @staticmethod
-  def _json_cleaner(ffn: str) -> None:
-    ffn = f'{ffn}.json'
-    if os.path.exists (ffn) :
-      os.remove (ffn)
-    else :
-      print(f'The {ffn} does not exist')
-    return
+  def _data_cleaner(ext: str) -> None:
+    extension = ext
+    
+    def _cleaner( fn: str):
+      ffn = f'{fn}.{extension}'
+      if os.path.exists (ffn) :
+        os.remove (ffn)
+      else :
+        print(f'The {ffn} does not exist')
+      return
+    return _cleaner

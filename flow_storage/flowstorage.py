@@ -152,8 +152,10 @@ class FlowStorage():
   @staticmethod
   def _data_type_str_to_flow_type(dt_str: str) -> FlowDataType:
     data_types = {
-      "np.dtype" : FlowDataType.IMAGE,
-      "List[np.ndarray]" : FlowDataType.CNTRS,
+      "array[dtype[uint8]]" : FlowDataType.CV2_IMAGE,
+      "array[dtype[float64]]" : FlowDataType.NP_ARRAY,
+      "List[array[dtype[uint32]]]" : FlowDataType.LIST_NP_ARRAYS,
+      "List[Tuple[uint]]" : FlowDataType.LIST_TUPLES,
       "np.ndarray" : FlowDataType.KPNTS,
     }
     return data_types.get(dt_str, FlowDataType.JSON)
