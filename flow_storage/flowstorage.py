@@ -121,13 +121,12 @@ class FlowStorage():
           break;
         else:
           exits_refs: List[FlowDataRef] = copy.deepcopy(state_storage.input_data.data_refs)
-          for ref in exits_refs:
-            if ref.is_alias:
-              continue
-            for in_ref in in_data_refs:
-              if ref.int_ref == in_ref.int_ref and ref.ext_ref == in_ref.ext_ref:
-                break
-              state_storage.input_data.data_refs.append(in_ref)
+          all_refs = in_data_refs + exits_refs
+          unique_refs = {}
+          for ref in all_refs:
+            if ref.int_ref not in unique_refs:
+              unique_refs[ref.int_ref] = ref
+          state_storage.input_data.data_refs = list(unique_refs.values())
     return
 
   def get_state_output_refs(self, state_id: str) -> List[FlowDataRef]:
@@ -187,7 +186,7 @@ class FlowStorage():
             if eref is not None:
               data_ref = FlowDataRef(iref, eref, dtype, True)
               st_storage.input_data.set_data_ref(data_ref)
-      
+        
       #  output data references:
       for outref in output_refs:
         if exec != 'glbstm.end':
