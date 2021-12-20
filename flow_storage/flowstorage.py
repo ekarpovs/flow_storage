@@ -156,7 +156,7 @@ class FlowStorage():
       "array[dtype[float64]]" : FlowDataType.NP_ARRAY,
       "List[array[dtype[uint32]]]" : FlowDataType.LIST_NP_ARRAYS,
       "List[Tuple[uint]]" : FlowDataType.LIST_TUPLES,
-      "np.ndarray" : FlowDataType.KPNTS,
+      "List[KeyPoint]" : FlowDataType.LIST_KPNTS,
     }
     return data_types.get(dt_str, FlowDataType.JSON)
 

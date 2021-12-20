@@ -1,10 +1,11 @@
-import os, re, os.path
+import os, os.path
 import cv2
 import numpy as np
 import json
 from typing import Callable, Dict, List, Tuple
 
 from .flowtypes import FlowDataType
+
 
 class FlowIOUtils():
   def __init__(self) -> None:
@@ -24,7 +25,7 @@ class FlowIOUtils():
       FlowDataType.LIST_NP_ARRAYS: self._list_np_arrays_reader,
       FlowDataType.JSON: self._json_reader,
       FlowDataType.LIST_TUPLES: self._list_tuples_reader,
-      FlowDataType.KPNTS: self._keypoints_reader
+      FlowDataType.LIST_KPNTS: self._list_keypoints_reader
     }
     return readers.get(rtype)
 
@@ -35,7 +36,7 @@ class FlowIOUtils():
       FlowDataType.LIST_NP_ARRAYS: self._list_np_arrays_writer,
       FlowDataType.JSON: self._json_writer,
       FlowDataType.LIST_TUPLES: self._list_tuples_writer,
-      FlowDataType.KPNTS: self._keypoints_writer
+      FlowDataType.LIST_KPNTS: self._list_keypoints_writer
     }
     return writers.get(rtype)
 
@@ -43,7 +44,8 @@ class FlowIOUtils():
     cleaners = {
       FlowDataType.CV2_IMAGE: self._data_cleaner('jpg'),
       FlowDataType.NP_ARRAY: self._data_cleaner('npy'),
-      FlowDataType.LIST_NP_ARRAYS: self._data_cleaner('json')
+      FlowDataType.LIST_NP_ARRAYS: self._data_cleaner('json'),
+      FlowDataType.LIST_KPNTS: self._data_cleaner('json')
     }
     return cleaners.get(rtype, self._data_cleaner('json'))
 
@@ -75,7 +77,7 @@ class FlowIOUtils():
 
 
   @staticmethod
-  def _list_tuples_reader(ffn: str) -> List[np.ndarray]:
+  def _list_tuples_reader(ffn: str) -> List[Tuple]:
     ffn = f'{ffn}.json'
     with open(ffn, 'rt') as f:
       ld = json.load(f)
@@ -84,11 +86,29 @@ class FlowIOUtils():
 
 
   @staticmethod
-  def _keypoints_reader(ffn: str) -> np.ndarray:
+  def _list_keypoints_reader(ffn: str) -> List[cv2.KeyPoint]:
+
+    def _List_dict_to_list_key_points(data: List[Dict]) -> List[cv2.KeyPoint]:
+      list_kps = []
+      for kp_dict in data:
+        angle = kp_dict.get('angle'),
+        class_id = kp_dict.get('class_id'),
+        ptl = kp_dict.get('pt'),
+        x = ptl[0][0]
+        y = ptl[0][1]
+        octave = kp_dict.get('octave'),
+        response = kp_dict.get('response'),
+        size = kp_dict.get('size')
+        # kp = cv2.KeyPoint(x, y, size, angle, response, octave, class_id)
+        kp = cv2.KeyPoint(x, y, size)
+        list_kps.append(kp)
+      return list_kps
+
     ffn = f'{ffn}.json'
     with open(ffn, 'rt') as f:
-      data = np.array(json.load(f))
-      return data
+      data = json.load(f)
+      list_kps = _List_dict_to_list_key_points(data)
+      return list_kps
 
 
   @staticmethod
@@ -126,10 +146,26 @@ class FlowIOUtils():
     return
 
   @staticmethod
-  def _keypoints_writer(ffn: str, data: np.ndarray) -> None:
+  def _list_keypoints_writer(ffn: str, data: List[cv2.KeyPoint]) -> None:
+
+    def _list_key_points_to_List_dict(data: List[cv2.KeyPoint]) -> List[Dict]:
+      list_dict = []
+      for kp in data:
+        kp_dict = {
+          'angle': kp.angle,
+          'class_id': kp.class_id,
+          'pt': kp.pt,
+          'octave': kp.octave,
+          'response': kp.response,
+          'size': kp.size
+          }
+        list_dict.append(kp_dict)
+      return list_dict
+
     ffn = f'{ffn}.json'
+    kps = _list_key_points_to_List_dict(data)
     with open(ffn, 'w') as fp:
-      json.dump(data.tolist(), fp, indent=2)
+      json.dump(kps, fp, indent=2)
     return
 
 
