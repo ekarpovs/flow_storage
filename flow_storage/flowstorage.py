@@ -37,15 +37,15 @@ class FlowStorage():
         return state_storage.input_data.data_refs
     return None
 
-  def get_state_input_data(self, state_id: str, aliases: Dict[str, str]) -> Dict:
+  def get_state_input_data(self, state_id: str, links: Dict[str, str]) -> Dict:
     data = {}
     for state_storage in self.storage:
       if state_storage.state_id == state_id:
         refs = state_storage.input_data.data_refs
         for ref in refs:
-          if len(aliases) > 0:
-            if ref.int_ref in aliases.keys():
-              ref.ext_ref = aliases.get(ref.int_ref)  
+          if len(links) > 0:
+            if ref.int_ref in links.keys():
+              ref.ext_ref = links.get(ref.int_ref)  
           # read the state data from the external storage
           ffn = f'{self._config.storage_path}/{ref.ext_ref}'
           reader = self.utils.reader(ref.data_type)
@@ -169,20 +169,20 @@ class FlowStorage():
       st_storage = FlowStateStorage(st_id)
 
       # Create referenses
-      aliases = step.get('aliases', None)
+      links = step.get('links', None)
       fn = operation_loader.get(exec)
       (_, _, input_refs, output_refs) = operation_loader.parse_oper_doc(fn.__doc__)
       #  input data references:
       # internal refs - from operatiom definitions
-      # external refs - from step aliases or the same as internal
+      # external refs - from step links or the same as internal
       for inref in input_refs:
         if exec != 'glbstm.begin':
           iref = f'{inref[0: inref.index(":")].strip()}'
           dtype_str = inref[inref.index(':')+1: inref.index(';')].strip()
           dtype = self._data_type_str_to_flow_type(dtype_str)
           eref = f'{i-1}-{exec}-{inref[0: inref.index(":")].strip()}'
-          if aliases is not None:
-            eref = aliases.get(iref, None)
+          if links is not None:
+            eref = links.get(iref, None)
             if eref is not None:
               data_ref = FlowDataRef(iref, eref, dtype, True)
               st_storage.input_data.set_data_ref(data_ref)
