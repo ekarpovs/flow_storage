@@ -31,116 +31,76 @@ class FlowStorage():
     FlowIOUtils.clean_ext_storage(self._config.storage_path)         
     return
 
-  def get_state_input_refs(self, state_id: str) -> List[FlowDataRef]:
+  def _get_state_sorage(self, state_id: str) -> FlowStateStorage:
     for state_storage in self.storage:
       if state_storage.state_id == state_id:
-        return state_storage.input_data.data_refs
+        return state_storage
+    return None
+
+# Input
+  def get_state_input_refs(self, state_id: str) -> List[FlowDataRef]:
+    state_storage: FlowStateStorage = self._get_state_sorage(state_id)
+    if state_storage is not None:
+      return state_storage.input_data.data_refs
+    return None
+
+  def get_state_input_ref(self, state_id: str, ext_ref: str) -> FlowDataRef:
+    state_storage: FlowStateStorage = self._get_state_sorage(state_id)
+    if state_storage is not None:
+      return state_storage.get_input_ref(ext_ref)
     return None
 
   def get_state_input_data(self, state_id: str, links: Dict[str, str]) -> Dict:
     data = {}
-    for state_storage in self.storage:
-      if state_storage.state_id == state_id:
-        refs = state_storage.input_data.data_refs
-        for ref in refs:
-          if len(links) > 0:
-            if ref.int_ref in links.keys():
-              ref.ext_ref = links.get(ref.int_ref)  
-          # read the state data from the external storage
-          ffn = f'{self._config.storage_path}/{ref.ext_ref}'
-          reader = self.utils.reader(ref.data_type)
-          data[ref.int_ref] = reader(ffn)
-        break
+    refs = self.get_state_input_refs(state_id)
+    for ref in refs:
+      if len(links) > 0:
+        if ref.int_ref in links.keys():
+          ref.ext_ref = links.get(ref.int_ref)  
+      # read the state data from the external storage
+      ffn = f'{self._config.storage_path}/{ref.ext_ref}'
+      reader = self.utils.reader(ref.data_type)
+      data[ref.int_ref] = reader(ffn)
     return data
+
+# Output
+  def get_state_output_refs(self, state_id: str) -> List[FlowDataRef]:
+    state_storage: FlowStateStorage = self._get_state_sorage(state_id)
+    if state_storage is not None:
+      return state_storage.output_data.data_refs
+    return None
 
   def get_state_output_data(self, state_id: str) -> Dict:
     data = {}
-    for state_storage in self.storage:
-      if state_storage.state_id == state_id:
-        refs = state_storage.output_data.data_refs
-        for ref in refs:
-          # read the state data from the external storage
-          reader = self.utils.reader(ref.data_type)
-          ffn = f'{self._config.storage_path}/{ref.ext_ref}'
-          data[ref.int_ref] = reader(ffn)
-        break
+    refs = self.get_state_output_refs(state_id)
+    for ref in refs:
+      # read the state data from the external storage
+      reader = self.utils.reader(ref.data_type)
+      ffn = f'{self._config.storage_path}/{ref.ext_ref}'
+      data[ref.int_ref] = reader(ffn)
     return data
 
-
   def set_state_output_data(self, state_id: str, data: Dict) -> None:
-    for state_storage in self.storage:
-      if state_storage.state_id == state_id:
-        refs = state_storage.output_data.data_refs
-        for ref in refs:
-          # write the state data to the external storage
-          writer = self.utils.writer(ref.data_type)
-          ffn = f'{self._config.storage_path}/{ref.ext_ref}'
-          stored_item = data.get(ref.int_ref)
-          if stored_item is not None:
-            writer(ffn, stored_item)
-        break
-    return
-
-  def clean_state_input_data(self, state_id: str) -> None:
-    for state_storage in self.storage:
-      if state_storage.state_id == state_id:
-        refs = state_storage.input_data.data_refs
-        for ref in refs:
-          # clean the state data from the external storage
-          cleaner = self.utils.cleaner(ref.data_type)
-          ffn = f'{self._config.storage_path}/{ref.ext_ref}'
-          cleaner(ffn)
-        break
+    refs = self.get_state_output_refs(state_id)
+    for ref in refs:
+      # write the state data to the external storage
+      writer = self.utils.writer(ref.data_type)
+      ffn = f'{self._config.storage_path}/{ref.ext_ref}'
+      stored_item = data.get(ref.int_ref)
+      if stored_item is not None:
+        writer(ffn, stored_item)
     return
 
   def clean_state_output_data(self, state_id: str) -> None:
-    for state_storage in self.storage:
-      if state_storage.state_id == state_id:
-        refs = state_storage.output_data.data_refs
-        for ref in refs:
-          # clean the state data from the external storage
-          cleaner = self.utils.cleaner(ref.data_type)
-          ffn = f'{self._config.storage_path}/{ref.ext_ref}'
-          cleaner(ffn)
-        break
+    refs = self.get_state_output_refs(state_id)
+    for ref in refs:
+      # clean the state data from the external storage
+      cleaner = self.utils.cleaner(ref.data_type)
+      ffn = f'{self._config.storage_path}/{ref.ext_ref}'
+      cleaner(ffn)
     return
 
-
-  def get_state_input_ref(self, state_id: str, ext_ref: str) -> FlowDataRef:
-    for state_storage in self.storage:
-      if state_storage.state_id == state_id:
-        return state_storage.get_input_ref(ext_ref)
-    return None
-
-
-  def set_state_input_refs(self, state_id: str, in_data_refs: List[FlowDataRef]) -> None:
-    for state_storage in self.storage:
-      if state_storage.state_id == state_id:
-        if len(state_storage.input_data.data_refs) == 0:
-          state_storage.input_data.data_refs = in_data_refs
-          break;
-        else:
-          exits_refs: List[FlowDataRef] = copy.deepcopy(state_storage.input_data.data_refs)
-          all_refs = in_data_refs + exits_refs
-          unique_refs = {}
-          for ref in all_refs:
-            if ref.int_ref not in unique_refs:
-              unique_refs[ref.int_ref] = ref
-          state_storage.input_data.data_refs = list(unique_refs.values())
-    return
-
-  def get_state_output_refs(self, state_id: str) -> List[FlowDataRef]:
-    for state_storage in self.storage:
-      if state_storage.state_id == state_id:
-        return state_storage.output_data.data_refs
-    return None
-
-  def set_state_output_refs(self, state_id: str, out_data: List[FlowDataRef]) -> None:
-    for state_storage in self.storage:
-      if state_storage.state_id == state_id:
-        state_storage.output_data = out_data
-    return
-
+# Storage
   def get_state_storage_by_idx(self, idx: int) -> FlowStateStorage:
     return self.storage[idx]
 
@@ -175,26 +135,26 @@ class FlowStorage():
       #  input data references:
       # internal refs - from operatiom definitions
       # external refs - from step links or the same as internal
-      for inref in input_refs:
+      for input_ref in input_refs:
         if exec != 'glbstm.begin':
-          iref = f'{inref[0: inref.index(":")].strip()}'
-          dtype_str = inref[inref.index(':')+1: inref.index(';')].strip()
+          internal_ref = f'{input_ref[0: input_ref.index(":")].strip()}'
+          dtype_str = input_ref[input_ref.index(':')+1: input_ref.index(';')].strip()
           dtype = self._data_type_str_to_flow_type(dtype_str)
-          eref = f'{i-1}-{exec}-{inref[0: inref.index(":")].strip()}'
+          external_ref = f'{i-1}-{exec}-{input_ref[0: input_ref.index(":")].strip()}'
           if links is not None:
-            eref = links.get(iref, None)
-            if eref is not None:
-              data_ref = FlowDataRef(iref, eref, dtype, True)
+            external_ref = links.get(internal_ref, None)
+            if external_ref is not None:
+              data_ref = FlowDataRef(internal_ref, external_ref, dtype, True)
               st_storage.input_data.set_data_ref(data_ref)
         
       #  output data references:
-      for outref in output_refs:
+      for output_ref in output_refs:
         if exec != 'glbstm.end':
-          iref = f'{outref[0: outref.index(":")].strip()}'
-          dtype_str = outref[outref.index(':')+1: outref.index(';')].strip()
+          internal_ref = f'{output_ref[0: output_ref.index(":")].strip()}'
+          dtype_str = output_ref[output_ref.index(':')+1: output_ref.index(';')].strip()
           dtype = self._data_type_str_to_flow_type(dtype_str)
-          eref = f'{i-1}-{exec}-{outref[0: outref.index(":")].strip()}'
-          data_ref = FlowDataRef(iref, eref, dtype)
+          external_ref = f'{i-1}-{exec}-{output_ref[0: output_ref.index(":")].strip()}'
+          data_ref = FlowDataRef(internal_ref, external_ref, dtype)
           st_storage.output_data.set_data_ref(data_ref)
       
       # Add in/out data into the storage
