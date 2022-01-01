@@ -50,13 +50,12 @@ class FlowStorage():
       return state_storage.get_input_ref(ext_ref)
     return None
 
-  def get_state_input_data(self, state_id: str, links: Dict[str, str]) -> Dict:
+  def get_state_input_data(self, state_id: str) -> Dict:
     data = {}
     refs = self.get_state_input_refs(state_id)
     for ref in refs:
-      if len(links) > 0:
-        if ref.int_ref in links.keys():
-          ref.ext_ref = links.get(ref.int_ref)  
+      if ref.ext_ref == '':
+        break
       # read the state data from the external storage
       ffn = f'{self._config.storage_path}/{ref.ext_ref}'
       reader = self.utils.reader(ref.data_type)
@@ -119,8 +118,8 @@ class FlowStorage():
     }
     return data_types.get(dt_str, FlowDataType.JSON)
 
-
   def _init_strorage(self) -> None:
+    prev_step = {'state_id': '', 'output_refs': []}
     for i, step in enumerate(self._ws):
       if 'info' in step.keys():
         continue
@@ -129,9 +128,8 @@ class FlowStorage():
       st_storage = FlowStateStorage(st_id)
 
       # Create referenses
-      links = step.get('links', None)
-      fn = operation_loader.get(exec)
-      (_, _, input_refs, output_refs) = operation_loader.parse_oper_doc(fn.__doc__)
+      func = operation_loader.get(exec)
+      (_, _, input_refs, output_refs) = operation_loader.parse_oper_doc(func.__doc__)
       #  input data references:
       # internal refs - from operatiom definitions
       # external refs - from step links or the same as internal
@@ -140,12 +138,26 @@ class FlowStorage():
           internal_ref = f'{input_ref[0: input_ref.index(":")].strip()}'
           dtype_str = input_ref[input_ref.index(':')+1: input_ref.index(';')].strip()
           dtype = self._data_type_str_to_flow_type(dtype_str)
-          external_ref = f'{i-1}-{exec}-{input_ref[0: input_ref.index(":")].strip()}'
+          data_ref = FlowDataRef(internal_ref)
+          data_ref.data_type = dtype
+          # define default stream
+          prev_exec = prev_step.get('exec')
+          prev_output_refs = prev_step.get('output_refs', None)
+          if prev_output_refs is not None:
+            for prev_output_ref in prev_output_refs:
+              prev_ref = prev_output_ref[0: prev_output_ref.index(":")].strip()              
+              if prev_ref is not None and prev_ref == internal_ref:
+                prev_external_ref = f'{i-2}-{prev_exec}-{prev_ref.strip()}'
+                data_ref.ext_ref = prev_external_ref
+                # data_ref = FlowDataRef(internal_ref, external_ref, dtype)
+          # update by link if exists
+          links = step.get('links', None)
           if links is not None:
-            external_ref = links.get(internal_ref, None)
-            if external_ref is not None:
-              data_ref = FlowDataRef(internal_ref, external_ref, dtype, True)
-              st_storage.input_data.set_data_ref(data_ref)
+            link = links.get(internal_ref, None)
+            if link is not None:
+              data_ref.ext_ref = link
+              data_ref.is_link = True
+          st_storage.input_data.set_data_ref(data_ref)
         
       #  output data references:
       for output_ref in output_refs:
@@ -157,6 +169,8 @@ class FlowStorage():
           data_ref = FlowDataRef(internal_ref, external_ref, dtype)
           st_storage.output_data.set_data_ref(data_ref)
       
-      # Add in/out data into the storage
-      self.set_state_storage_by_idx(i-1, st_storage)    
+      self.set_state_storage_by_idx(i-1, st_storage)
+      # save current refs for usage on the next step like default values of input refs
+      prev_step['exec'] = exec 
+      prev_step['output_refs'] = output_refs
     return
