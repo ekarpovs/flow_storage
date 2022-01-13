@@ -42,7 +42,7 @@ class FlowIOUtils():
 
   def cleaner(self, rtype: FlowDataType) -> Callable:
     cleaners = {
-      FlowDataType.CV2_IMAGE: self._data_cleaner('jpg'),
+      FlowDataType.CV2_IMAGE: self._data_cleaner('png'),
       FlowDataType.NP_ARRAY: self._data_cleaner('npy'),
       FlowDataType.LIST_NP_ARRAYS: self._data_cleaner('json'),
       FlowDataType.LIST_KPNTS: self._data_cleaner('json')
@@ -52,7 +52,7 @@ class FlowIOUtils():
 
   @staticmethod
   def _cv2_image_reader(ffn: str) -> np.dtype:
-    ffn = f'{ffn}.jpg'
+    ffn = f'{ffn}.png'
     return cv2.imread(ffn, cv2.IMREAD_UNCHANGED)
 
   @staticmethod
@@ -113,7 +113,7 @@ class FlowIOUtils():
 
   @staticmethod
   def _cv2_image_writer(ffn: str, arr: np.dtype) -> None:
-    ffn = f'{ffn}.jpg'
+    ffn = f'{ffn}.png'
     cv2.imwrite(ffn, arr)
     return
 
