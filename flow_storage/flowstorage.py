@@ -28,7 +28,7 @@ class FlowStorage():
 
   def reset(self) -> None:
     # Clean all external storage data
-    FlowIOUtils.clean_ext_storage(self._config.storage_path)         
+    self.utils.clean_ext_storage(self._config.storage_path)         
     return
 
   def _get_state_sorage(self, state_id: str) -> FlowStateStorage:

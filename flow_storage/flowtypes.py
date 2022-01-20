@@ -3,3 +3,6 @@ class FlowDataType():
 
 class FlowIOType():
   IN, OUT = range(2)
+
+class FlowStorageType():
+  FS, H5PY = range(2)
