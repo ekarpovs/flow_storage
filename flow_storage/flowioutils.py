@@ -20,7 +20,6 @@ class FlowIOUtils():
 
   def reader(self, rtype: FlowDataType) -> Callable:
     readers = {
-      FlowDataType.CV2_IMAGE: self._cv2_image_reader,
       FlowDataType.NP_ARRAY: self._np_array_reader,
       FlowDataType.LIST_NP_ARRAYS: self._list_np_arrays_reader,
       FlowDataType.JSON: self._json_reader,
@@ -31,7 +30,6 @@ class FlowIOUtils():
 
   def writer(self, rtype: FlowDataType) -> Callable:
     writers = {
-      FlowDataType.CV2_IMAGE: self._cv2_image_writer,
       FlowDataType.NP_ARRAY: self._np_array_writer,
       FlowDataType.LIST_NP_ARRAYS: self._list_np_arrays_writer,
       FlowDataType.JSON: self._json_writer,
@@ -42,19 +40,13 @@ class FlowIOUtils():
 
   def cleaner(self, rtype: FlowDataType) -> Callable:
     cleaners = {
-      FlowDataType.CV2_IMAGE: self._data_cleaner('png'),
       FlowDataType.NP_ARRAY: self._data_cleaner('npy'),
       FlowDataType.LIST_NP_ARRAYS: self._data_cleaner('json'),
       FlowDataType.LIST_KPNTS: self._data_cleaner('json')
     }
     return cleaners.get(rtype, self._data_cleaner('json'))
 
-
-  @staticmethod
-  def _cv2_image_reader(ffn: str) -> np.dtype:
-    ffn = f'{ffn}.png'
-    return cv2.imread(ffn, cv2.IMREAD_UNCHANGED)
-
+# Readers
   @staticmethod
   def _np_array_reader(ffn: str) -> np.dtype:
     ffn = f'{ffn}.npy'
@@ -75,7 +67,6 @@ class FlowIOUtils():
       data = [np.array(d) for d in ld]
       return data
 
-
   @staticmethod
   def _list_tuples_reader(ffn: str) -> List[Tuple]:
     ffn = f'{ffn}.json'
@@ -83,7 +74,6 @@ class FlowIOUtils():
       ld = json.load(f)
       data = [np.array(d) for d in ld]
       return data
-
 
   @staticmethod
   def _list_keypoints_reader(ffn: str) -> List[cv2.KeyPoint]:
@@ -111,12 +101,7 @@ class FlowIOUtils():
       return list_kps
 
 
-  @staticmethod
-  def _cv2_image_writer(ffn: str, arr: np.dtype) -> None:
-    ffn = f'{ffn}.png'
-    cv2.imwrite(ffn, arr)
-    return
-
+# Writers
   @staticmethod
   def _np_array_writer(ffn: str, arr: np.dtype) -> None:
     ffn = f'{ffn}.npy'
@@ -168,7 +153,7 @@ class FlowIOUtils():
       json.dump(kps, fp, indent=2)
     return
 
-
+# Cleaner
   @staticmethod
   def _data_cleaner(ext: str) -> None:
     extension = ext
