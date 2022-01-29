@@ -1,3 +1,4 @@
+from genericpath import isfile
 import os, os.path
 import cv2
 import numpy as np
@@ -17,16 +18,22 @@ class FlowIOUtilsFs():
 # Readers
   def np_array_reader(self, ffn: str) -> np.ndarray:
     ffn = f'{ffn}.npy'
-    return np.load(ffn)
+    if isfile(ffn):
+      return np.load(ffn)
+    return None
 
   def json_reader(self, ffn: str) -> Dict:
     ffn = f'{ffn}.json'
+    if not isfile(ffn):
+      return None
     with open(ffn, 'rt') as f:
       data = json.load(f)
       return data
 
   def list_np_arrays_reader(self, ffn: str) -> List[np.ndarray]:
     ffn = f'{ffn}.json'
+    if not isfile(ffn):
+      return None
     with open(ffn, 'rt') as f:
       ld = json.load(f)
       data = [np.array(d) for d in ld]
