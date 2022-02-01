@@ -55,7 +55,7 @@ class FlowStorage():
     refs = self.get_state_input_refs(state_id)
     for ref in refs:
       if ref.ext_ref == '':
-        break
+        continue
       # read the state data from the external storage
       ffn = f'{self._config.storage_path}/{ref.ext_ref}'
       reader = self.utils.reader(ref.data_type)
