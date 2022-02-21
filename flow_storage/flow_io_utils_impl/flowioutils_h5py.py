@@ -1,6 +1,9 @@
+import json
+import os
 import cv2
 import numpy as np
 import h5py
+import ast
 
 from typing import Dict, List, Tuple
 
@@ -9,32 +12,26 @@ from ..flowstorageconfig import FlowStorageConfig
 
 class FlowIOUtilsH5Py():
   def __init__(self, config: FlowStorageConfig) -> None:
-      self._config = config
+    db_ffn = f'{config.storage_location}/data.hdf5'
+    self._db = h5py.File(db_ffn, "a")
+    return
 
-  def clean_ext_storage(self, path: str) -> None:
+  def clean_ext_storage(self) -> None:
     return
 
 # Readers
-  # def load_dataset(path, datasetName):
-  #   # open the database, grab the labels and data, then close the dataset
-  #   db = h5py.File(path, "r")
-  #   (labels, data) = (db[datasetName][:, 0], db[datasetName][:, 1:])
-  #   db.close()
-  #   # return a tuple of the data and labels
-  #   return (data, labels)
+  def np_array_reader(self, fn: str) -> np.ndarray:
+    dataset = self._db.get(fn)
+    return np.array(dataset)
 
+  def json_reader(self, fn: str) -> Dict:
+    dataset = self._db.get(fn).asstr()[()]
+    # data = ast.literal_eval(dataset)
+    return dataset
 
-  def np_array_reader(self, ffn: str) -> np.ndarray:
-    ffn = f'{ffn}.npy'
-    return np.load(ffn)
-
-  def json_reader(self, ffn: str) -> Dict:
-    data = {}
-    return data
-
-  def list_np_arrays_reader(self, ffn: str) -> List[np.ndarray]:
-    data = {}
-    return data
+  def list_np_arrays_reader(self, fn: str) -> List[np.ndarray]:
+    dataset = self._db.get(fn)
+    return list(np.array(dataset))
 
   def list_tuples_reader(self, ffn: str) -> List[Tuple]:
     data = {}
@@ -62,21 +59,27 @@ class FlowIOUtilsH5Py():
     return data
 
 # Writers
-  # def dump_dataset(data, labels, path, datasetName, writeMethod="w"):
-  #   # open the database, create the dataset, write the data and labels to dataset,
-  #   # and then close the database
-  #   db = h5py.File(path, writeMethod)
-  #   dataset = db.create_dataset(datasetName, (len(data), len(data[0]) + 1), dtype="float")
-  #   dataset[0:len(data)] = np.c_[labels, data]
-  #   db.close() 
-
-  def np_array_writer(self, ffn: str, arr: np.ndarray) -> None:
+  def np_array_writer(self, fn: str, arr: np.ndarray) -> None:
+    keys = self._db.keys()
+    if fn in keys:
+      del self._db[fn]
+    self._db.create_dataset(fn, data=arr)
+    # dataset[fn] = arr.astype(h5py.opaque_dtype(arr.dtype))
     return
 
-  def list_np_arrays_writer(self, ffn: str, data: List[np.ndarray]) -> None:
+  def list_np_arrays_writer(self, fn: str, data: List[np.ndarray]) -> None:
+    keys = self._db.keys()
+    if fn in keys:
+      del self._db[fn]
+    self._db.create_dataset(fn, data=data)
     return
 
-  def json_writer(self, ffn: str, data: Dict) -> None:
+  def json_writer(self, fn: str, data: Dict) -> None:
+    keys = self._db.keys()
+    if fn in keys:
+      del self._db[fn]
+    str_data = json.dumps(data)
+    self._db.create_dataset(fn, data=str_data)
     return
 
   def list_tuples_writer(self, ffn: str, data: List[Tuple]) -> None:
@@ -105,5 +108,8 @@ class FlowIOUtilsH5Py():
     extension = ext
     
     def _cleaner( fn: str):
+      keys = self._db.keys()
+      if fn in keys:
+        del self._db[fn]
       return
     return _cleaner
