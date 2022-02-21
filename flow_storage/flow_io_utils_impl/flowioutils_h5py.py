@@ -13,10 +13,15 @@ from ..flowstorageconfig import FlowStorageConfig
 class FlowIOUtilsH5Py():
   def __init__(self, config: FlowStorageConfig) -> None:
     db_ffn = f'{config.storage_location}/data.hdf5'
+    if os.path.exists (db_ffn) :
+      os.remove (db_ffn)
     self._db = h5py.File(db_ffn, "a")
     return
 
   def clean_ext_storage(self) -> None:
+    keys = self._db.keys()
+    for key in keys:
+      del self._db[key]
     return
 
 # Readers
