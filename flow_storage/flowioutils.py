@@ -6,14 +6,15 @@ from typing import Callable, Dict, List, Tuple
 
 from .flow_io_utils_impl import FlowIOUtilsImpl
 from .flowtypes import FlowDataType, FlowStorageType
+from .flowstorageconfig import FlowStorageConfig
 
 class FlowIOUtils():
-  def __init__(self, type = FlowStorageType.FS) -> None:
-    self.impl = FlowIOUtilsImpl(type)
+  def __init__(self, config: FlowStorageConfig) -> None:
+    self.impl = FlowIOUtilsImpl(config)
     return
 
-  def clean_ext_storage(self, path: str) -> Callable:
-    return self.impl.clean_ext_storage(path)
+  def clean_ext_storage(self) -> Callable:
+    return self.impl.clean_ext_storage()
 
   def reader(self, rtype: FlowDataType) -> Callable:
     readers = {

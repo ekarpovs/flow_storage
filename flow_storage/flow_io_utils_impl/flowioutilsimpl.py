@@ -4,22 +4,24 @@ import numpy as np
 from abc import abstractmethod
 from typing import Callable, Dict, List, Tuple
 from ..flowtypes import *
+from ..flowstorageconfig import FlowStorageConfig
 from .flowioutils_fs import FlowIOUtilsFs
+from .flowioutils_h5py import FlowIOUtilsH5Py
 
 class FlowIOUtilsImpl():
-  def __init__(self, type) -> None:
-    self.impl = self.impl_factory(type)
+  def __init__(self, config: FlowStorageConfig) -> None:
+    self.impl = self.impl_factory(config)
     return
 
 
-  def impl_factory(self, type):
+  def impl_factory(self, config: FlowStorageConfig):
     impl = {
-      FlowStorageType.FS: FlowIOUtilsFs()
+      FlowStorageType.H5PY: FlowIOUtilsH5Py(config)
     }
-    return impl.get(type)
+    return impl.get(config.storage_type, FlowIOUtilsFs(config))
 
-  def clean_ext_storage(self, path: str) -> None:
-    return self.impl.clean_ext_storage(path)
+  def clean_ext_storage(self) -> None:
+    return self.impl.clean_ext_storage()
 
 # Readers
   def np_array_reader(self, ffn: str) -> Callable:

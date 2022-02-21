@@ -15,10 +15,9 @@ class FlowStorage():
   '''
 
   def __init__(self, config: FlowStorageConfig, ws: List[Dict]) -> None:
-      self._config = config
       self._ws = ws
       self._storage: List[FlowStateStorage] = []
-      self.utils = FlowIOUtils()
+      self.utils = FlowIOUtils(config)
       self._init_strorage()
       return
       
@@ -28,7 +27,7 @@ class FlowStorage():
 
   def reset(self) -> None:
     # Clean all external storage data
-    self.utils.clean_ext_storage(self._config.storage_path)         
+    self.utils.clean_ext_storage()         
     return
 
   def _get_state_sorage(self, state_id: str) -> FlowStateStorage:
@@ -57,9 +56,8 @@ class FlowStorage():
       if ref.ext_ref == '':
         continue
       # read the state data from the external storage
-      ffn = f'{self._config.storage_path}/{ref.ext_ref}'
       reader = self.utils.reader(ref.data_type)
-      data[ref.int_ref] = reader(ffn)
+      data[ref.int_ref] = reader(ref.ext_ref)
     return data
 
 # Output
@@ -75,8 +73,7 @@ class FlowStorage():
     for ref in refs:
       # read the state data from the external storage
       reader = self.utils.reader(ref.data_type)
-      ffn = f'{self._config.storage_path}/{ref.ext_ref}'
-      data[ref.int_ref] = reader(ffn)
+      data[ref.int_ref] = reader(ref.ext_ref)
     return data
 
   def set_state_output_data(self, state_id: str, data: Dict) -> None:
@@ -84,10 +81,9 @@ class FlowStorage():
     for ref in refs:
       # write the state data to the external storage
       writer = self.utils.writer(ref.data_type)
-      ffn = f'{self._config.storage_path}/{ref.ext_ref}'
       stored_item = data.get(ref.int_ref)
       if stored_item is not None:
-        writer(ffn, stored_item)
+        writer(ref.ext_ref, stored_item)
     return
 
   def clean_state_output_data(self, state_id: str) -> None:
@@ -95,8 +91,7 @@ class FlowStorage():
     for ref in refs:
       # clean the state data from the external storage
       cleaner = self.utils.cleaner(ref.data_type)
-      ffn = f'{self._config.storage_path}/{ref.ext_ref}'
-      cleaner(ffn)
+      cleaner(ref.ext_ref)
     return
 
 # Storage
@@ -148,7 +143,6 @@ class FlowStorage():
               if prev_ref is not None and prev_ref == internal_ref:
                 prev_external_ref = f'{i-2}-{prev_exec}-{prev_ref.strip()}'
                 data_ref.ext_ref = prev_external_ref
-                # data_ref = FlowDataRef(internal_ref, external_ref, dtype)
           # update by link if exists
           links = step.get('links', None)
           if links is not None:
