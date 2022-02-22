@@ -18,6 +18,10 @@ class FlowIOUtilsH5Py():
     self._db = h5py.File(db_ffn, "a")
     return
 
+  def close(self) -> None:
+    self._db.close()
+    return
+
   def clean_ext_storage(self) -> None:
     keys = self._db.keys()
     for key in keys:

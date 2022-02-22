@@ -13,6 +13,9 @@ class FlowIOUtilsFs():
   def __init__(self, config: FlowStorageConfig) -> None:
       self._config = config
 
+  def close(self) -> None:
+    return
+
   def clean_ext_storage(self) -> None:
     if self._config.storage_location == '.':
       print('storage location is not defined!!!')

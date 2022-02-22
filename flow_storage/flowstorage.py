@@ -17,17 +17,22 @@ class FlowStorage():
   def __init__(self, config: FlowStorageConfig, ws: List[Dict]) -> None:
       self._ws = ws
       self._storage: List[FlowStateStorage] = []
-      self.utils = FlowIOUtils(config)
+      self._utils = FlowIOUtils(config)
       self._init_strorage()
       return
-      
+  
   @property
   def storage(self) -> List[FlowStateStorage]:
     return self._storage
 
+  def close(self) -> None:
+    self._utils.impl.close()
+    return
+
+    return
   def reset(self) -> None:
     # Clean all external storage data
-    self.utils.clean_ext_storage()         
+    self._utils.clean_ext_storage()         
     return
 
   def _get_state_sorage(self, state_id: str) -> FlowStateStorage:
@@ -56,7 +61,7 @@ class FlowStorage():
       if ref.ext_ref == '':
         continue
       # read the state data from the external storage
-      reader = self.utils.reader(ref.data_type)
+      reader = self._utils.reader(ref.data_type)
       data[ref.int_ref] = reader(ref.ext_ref)
     return data
 
@@ -72,7 +77,7 @@ class FlowStorage():
     refs = self.get_state_output_refs(state_id)
     for ref in refs:
       # read the state data from the external storage
-      reader = self.utils.reader(ref.data_type)
+      reader = self._utils.reader(ref.data_type)
       data[ref.int_ref] = reader(ref.ext_ref)
     return data
 
@@ -80,7 +85,7 @@ class FlowStorage():
     refs = self.get_state_output_refs(state_id)
     for ref in refs:
       # write the state data to the external storage
-      writer = self.utils.writer(ref.data_type)
+      writer = self._utils.writer(ref.data_type)
       stored_item = data.get(ref.int_ref)
       if stored_item is not None:
         writer(ref.ext_ref, stored_item)
@@ -90,7 +95,7 @@ class FlowStorage():
     refs = self.get_state_output_refs(state_id)
     for ref in refs:
       # clean the state data from the external storage
-      cleaner = self.utils.cleaner(ref.data_type)
+      cleaner = self._utils.cleaner(ref.data_type)
       cleaner(ref.ext_ref)
     return
 

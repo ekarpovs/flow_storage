@@ -19,6 +19,10 @@ class FlowIOUtilsImpl():
     }
     return impl.get(config.storage_type, FlowIOUtilsFs(config))
 
+  def close(self) -> None:
+    self._impl.close()
+    return
+
   def clean_ext_storage(self) -> None:
     return self._impl.clean_ext_storage()
 
