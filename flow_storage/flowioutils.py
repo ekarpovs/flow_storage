@@ -20,6 +20,7 @@ class FlowIOUtils():
     readers = {
       FlowDataType.NP_ARRAY: self.impl.np_array_reader,
       FlowDataType.LIST_NP_ARRAYS: self.impl.list_np_arrays_reader,
+      FlowDataType.LIST_OF_LISTS_NP_ARRAYS: self.impl.list_of_lists_np_arrays_reader,
       FlowDataType.JSON: self.impl.json_reader,
       FlowDataType.LIST_TUPLES: self.impl.list_tuples_reader,
       FlowDataType.LIST_KPNTS: self.impl.list_keypoints_reader
@@ -30,6 +31,7 @@ class FlowIOUtils():
     writers = {
       FlowDataType.NP_ARRAY: self.impl.np_array_writer,
       FlowDataType.LIST_NP_ARRAYS: self.impl.list_np_arrays_writer,
+      FlowDataType.LIST_OF_LISTS_NP_ARRAYS: self.impl.list_of_lists_np_arrays_writer,
       FlowDataType.JSON: self.impl.json_writer,
       FlowDataType.LIST_TUPLES: self.impl.list_tuples_writer,
       FlowDataType.LIST_KPNTS: self.impl.list_keypoints_writer

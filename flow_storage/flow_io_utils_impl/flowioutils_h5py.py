@@ -35,16 +35,20 @@ class FlowIOUtilsH5Py():
 
   def json_reader(self, fn: str) -> Dict:
     dataset = self._db.get(fn).asstr()[()]
-    # data = ast.literal_eval(dataset)
     return dataset
 
   def list_np_arrays_reader(self, fn: str) -> List[np.ndarray]:
     dataset = self._db.get(fn)
     return list(np.array(dataset))
 
-  def list_tuples_reader(self, ffn: str) -> List[Tuple]:
-    data = {}
-    return data
+  def list_of_lists_np_arrays_reader(self, fn: str) -> List[List[np.ndarray]]:
+    dataset = self._db.get(fn)
+    return list(np.array(dataset))
+
+
+  def list_tuples_reader(self, fn: str) -> List[Tuple]:
+    dataset = self._db.get(fn).asstr()[()]
+    return dataset
 
   def list_keypoints_reader(self, ffn: str) -> List[cv2.KeyPoint]:
 
@@ -83,6 +87,24 @@ class FlowIOUtilsH5Py():
     self._db.create_dataset(fn, data=data)
     return
 
+  def list_of_lists_np_arrays_writer(self, fn: str, data: List[List[np.ndarray]]) -> None:
+    keys = self._db.keys()
+    if fn in keys:
+      del self._db[fn]
+
+    # contours = []
+    # max_length = max(map(len, cntrs))
+    # for contour in cntrs:
+    #   c_h, c_w, c_c = contour.shape
+    #   contour_arr = np.full(max_length, 0, dtype=np.int32)
+    #   # contour_arr = np.pad(contour, ((0, 0),(0, 0),(0, 0)))
+    #   contour_arr = np.pad(contour, (0, 0))
+    #   # contour_arr[:len(contour)] = contour
+    
+    self._db.create_dataset(fn, data=data)
+    return
+
+
   def json_writer(self, fn: str, data: Dict) -> None:
     keys = self._db.keys()
     if fn in keys:
@@ -91,7 +113,12 @@ class FlowIOUtilsH5Py():
     self._db.create_dataset(fn, data=str_data)
     return
 
-  def list_tuples_writer(self, ffn: str, data: List[Tuple]) -> None:
+  def list_tuples_writer(self, fn: str, data: List[Tuple]) -> None:
+    keys = self._db.keys()
+    if fn in keys:
+      del self._db[fn]
+    str_data = json.dumps(data)
+    self._db.create_dataset(fn, data=str_data)
     return
 
   def list_keypoints_writer(self, ffn: str, data: List[cv2.KeyPoint]) -> None:

@@ -112,6 +112,7 @@ class FlowStorage():
     data_types = {
       "ndarray" : FlowDataType.NP_ARRAY,
       "List[ndarray]" : FlowDataType.LIST_NP_ARRAYS,
+      "List[List[ndarray]]" : FlowDataType.LIST_OF_LISTS_NP_ARRAYS,
       "List[Tuple[uint]]" : FlowDataType.LIST_TUPLES,
       "List[KeyPoint]" : FlowDataType.LIST_KPNTS,
     }

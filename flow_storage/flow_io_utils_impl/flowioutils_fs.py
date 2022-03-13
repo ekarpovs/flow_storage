@@ -53,6 +53,16 @@ class FlowIOUtilsFs():
       data = [np.array(d) for d in ld]
       return data
 
+  def list_of_lists_np_arrays_reader(self, fn: str) -> List[List[np.ndarray]]:
+    ffn = f'{self._config.storage_location}/{fn}'
+    ffn = f'{ffn}.json'
+    if not isfile(ffn):
+      return None
+    with open(ffn, 'rt') as f:
+      ld = json.load(f)
+      data = [np.array(d) for d in ld]
+      return data
+
   def list_tuples_reader(self, fn: str) -> List[Tuple]:
     ffn = f'{self._config.storage_location}/{fn}'
     ffn = f'{ffn}.json'
@@ -100,6 +110,15 @@ class FlowIOUtilsFs():
     with open(ffn, 'w') as fp:
       json.dump(sd, fp, indent=2)
     return
+
+  def list_of_lists_np_arrays_writer(self, fn: str, data: List[List[np.ndarray]]) -> None:
+    ffn = f'{self._config.storage_location}/{fn}'
+    ffn = f'{ffn}.json'
+    sd = [d.tolist() for d in data]
+    with open(ffn, 'w') as fp:
+      json.dump(sd, fp, indent=2)
+    return
+
 
   def json_writer(self, fn: str, data: Dict) -> None:
     ffn = f'{self._config.storage_location}/{fn}'

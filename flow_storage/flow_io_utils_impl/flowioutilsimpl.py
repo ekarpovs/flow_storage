@@ -36,6 +36,9 @@ class FlowIOUtilsImpl():
   def list_np_arrays_reader(self, ffn: str) -> List[np.ndarray]:
     return self._impl.list_np_arrays_reader(ffn)
 
+  def list_of_lists_np_arrays_reader(self, ffn: str) -> List[List[np.ndarray]]:
+    return self._impl.list_of_lists_np_arrays_reader(ffn)
+
   def list_tuples_reader(self, ffn: str) -> List[Tuple]:
     return self._impl.list_tuples_reader(ffn)
 
@@ -48,6 +51,9 @@ class FlowIOUtilsImpl():
 
   def list_np_arrays_writer(self, ffn: str, data: List[np.ndarray]) -> None:
     return self._impl.list_np_arrays_writer(ffn, data)
+
+  def list_of_lists_np_arrays_writer(self, ffn: str, data: List[List[np.ndarray]]) -> None:
+    return self._impl.list_of_lists_np_arrays_writer(ffn, data)
 
   def json_writer(self, ffn: str, data: Dict) -> None:
     return self._impl.json_writer(ffn, data)
