@@ -37,4 +37,8 @@ class FlowStateStorage():
 
 
   def get_input_ref(self, ext_ref: str) -> FlowDataRef:
-    self.input_data.get_data_ref(ext_ref)
+    return self.input_data.get_data_ref(ext_ref)
+
+  def get_input_ext_data_ref(self, int_ref: str) -> FlowDataRef:
+    return self.input_data.get_ext_data_ref(int_ref)
+  

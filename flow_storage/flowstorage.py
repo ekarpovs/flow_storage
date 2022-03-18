@@ -54,6 +54,13 @@ class FlowStorage():
       return state_storage.get_input_ref(ext_ref)
     return None
 
+  def get_state_input_ext_ref(self, state_id: str, int_ref: str) -> FlowDataRef:
+    state_storage: FlowStateStorage = self._get_state_sorage(state_id)
+    if state_storage is not None:
+      return state_storage.get_input_ext_data_ref(int_ref)
+    return None
+
+
   def get_state_input_data(self, state_id: str) -> Dict:
     data = {}
     refs = self.get_state_input_refs(state_id)
