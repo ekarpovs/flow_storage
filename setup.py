@@ -7,5 +7,5 @@ setup(name='flow_storage',
       author='ekarpovs',
       author_email='',
       license='MIT',
-      packages=['flow_storage'],
+      packages=['flow_storage', 'flow_storage.flow_io_utils_impl'],
       zip_safe=False)

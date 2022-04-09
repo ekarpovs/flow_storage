@@ -17,7 +17,7 @@ _____
 
 ```bash
 cd flow_storage
-pip install -e .
+pip install -e . --use-feature=in-tree-build
 ```
 
 ## Test
