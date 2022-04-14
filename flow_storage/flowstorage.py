@@ -82,6 +82,8 @@ class FlowStorage():
   def get_state_output_data(self, state_id: str) -> Dict:
     data = {}
     refs = self.get_state_output_refs(state_id)
+    if refs is None:
+       return data
     for ref in refs:
       # read the state data from the external storage
       reader = self._utils.reader(ref.data_type)
