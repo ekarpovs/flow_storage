@@ -15,9 +15,9 @@ class FlowIOUtilsImpl():
 
   def impl_factory(self, config: FlowStorageConfig):
     impl = {
-      'h5py': FlowIOUtilsH5Py(config)
+      'h5py': FlowIOUtilsH5Py
     }
-    return impl.get(config.storage_type, FlowIOUtilsFs(config))
+    return impl.get(config.storage_type, FlowIOUtilsFs)(config)
 
   def close(self) -> None:
     self._impl.close()
