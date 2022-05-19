@@ -34,7 +34,9 @@ class FlowIOUtilsH5Py():
     return np.array(dataset)
 
   def json_reader(self, fn: str) -> Dict:
-    dataset = self._db.get(fn).asstr()[()]
+    dataset = self._db.get(fn)
+    if dataset is not None:
+      dataset = dataset.asstr()[()]
     return dataset
 
   def list_np_arrays_reader(self, fn: str) -> List[np.ndarray]:
