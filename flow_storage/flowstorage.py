@@ -108,6 +108,39 @@ class FlowStorage():
       cleaner(ref.ext_ref)
     return
 
+# Cache
+  def get_state_cache_ref(self, state_id: str) -> FlowDataRef:
+    state_storage: FlowStateStorage = self._get_state_sorage(state_id)
+    if state_storage is not None:
+      return state_storage.cache_data.data_refs[0]
+    return None
+
+  def get_state_cache_data(self, state_id: str) -> Dict:
+    data = {}
+    ref = self.get_state_cache_ref(state_id)
+    if ref.ext_ref != '':
+      # read the state cache data from the external storage
+      reader = self._utils.reader(ref.data_type)
+      data[ref.int_ref] = reader(ref.ext_ref)
+    return data
+
+  def set_state_cache_data(self, state_id: str, data: Dict) -> None:
+    ref = self.get_state_cache_ref(state_id)
+    # write the state cache data to the external storage
+    writer = self._utils.writer(ref.data_type)
+    stored_item = data.get(ref.int_ref)
+    if stored_item is not None:
+      writer(ref.ext_ref, stored_item)
+    return
+
+  def clean_state_cache_data(self, state_id: str) -> None:
+    ref = self.get_state_cache_ref(state_id)
+    # clean the state cache data from the external storage
+    cleaner = self._utils.cleaner(ref.data_type)
+    cleaner(ref.ext_ref)
+    return
+
+
 # Storage
   def get_state_storage_by_idx(self, idx: int) -> FlowStateStorage:
     return self.storage[idx]
@@ -176,7 +209,15 @@ class FlowStorage():
           external_ref = f'{i-1}-{exec}-{output_ref[0: output_ref.index(":")].strip()}'
           data_ref = FlowDataRef(internal_ref, external_ref, dtype)
           st_storage.output_data.set_data_ref(data_ref)
-      
+
+      #  cache data references:
+      if exec == 'glbstm.for_begin':
+        internal_ref = 'stmselfcache'
+        dtype = FlowDataType.JSON
+        external_ref = f'{i-1}-{exec}-{internal_ref}'
+        data_ref = FlowDataRef(internal_ref, external_ref, dtype)
+        st_storage.cache_data.set_data_ref(data_ref)
+
       self.set_state_storage_by_idx(i-1, st_storage)
       # save current refs for usage on the next step like default values of input refs
       prev_step['exec'] = exec 

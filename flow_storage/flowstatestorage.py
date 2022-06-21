@@ -12,6 +12,7 @@ class FlowStateStorage():
       self._state_id = state_id
       self._input_data = FlowStateIOData(FlowIOType.IN)
       self._output_data = FlowStateIOData(FlowIOType.OUT)
+      self._cache_data = FlowStateIOData(FlowIOType.CACHE)
 
   @property
   def state_id(self) -> str:
@@ -35,6 +36,14 @@ class FlowStateStorage():
     self._output_data = data
     return
 
+  @property
+  def cache_data(self) -> FlowStateIOData:
+    return self._cache_data
+
+  @cache_data.setter
+  def cache_data(self, data: FlowStateIOData) -> None:
+    self._cache_data = data
+    return
 
   def get_input_ref(self, ext_ref: str) -> FlowDataRef:
     return self.input_data.get_data_ref(ext_ref)
