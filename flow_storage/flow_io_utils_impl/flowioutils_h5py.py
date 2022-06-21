@@ -37,6 +37,7 @@ class FlowIOUtilsH5Py():
     dataset = self._db.get(fn)
     if dataset is not None:
       dataset = dataset.asstr()[()]
+      dataset = json.loads(dataset)
     return dataset
 
   def list_np_arrays_reader(self, fn: str) -> List[np.ndarray]:
