@@ -211,7 +211,7 @@ class FlowStorage():
           st_storage.output_data.set_data_ref(data_ref)
 
       #  cache data references:
-      if exec == 'glbstm.for_begin':
+      if exec == 'glbstm.for_begin' or exec == 'glbstm.while_begin':
         internal_ref = 'stmselfcache'
         dtype = FlowDataType.JSON
         external_ref = f'{i-1}-{exec}-{internal_ref}'
