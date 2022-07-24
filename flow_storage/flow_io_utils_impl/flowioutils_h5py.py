@@ -3,7 +3,6 @@ import os
 import cv2
 import numpy as np
 import h5py
-import ast
 
 from typing import Dict, List, Tuple
 
@@ -13,8 +12,8 @@ from ..flowstorageconfig import FlowStorageConfig
 class FlowIOUtilsH5Py():
   def __init__(self, config: FlowStorageConfig) -> None:
     db_ffn = f'{config.storage_location}/data.hdf5'
-    if os.path.exists (db_ffn) :
-      os.remove (db_ffn)
+    if os.path.exists(db_ffn):
+      os.remove(db_ffn)
     self._db = h5py.File(db_ffn, "a")
     return
 
@@ -48,7 +47,6 @@ class FlowIOUtilsH5Py():
     dataset = self._db.get(fn)
     return list(np.array(dataset))
 
-
   def list_tuples_reader(self, fn: str) -> List[Tuple]:
     dataset = self._db.get(fn).asstr()[()]
     return dataset
@@ -58,13 +56,13 @@ class FlowIOUtilsH5Py():
     def _list_dict_to_list_key_points(data: List[Dict]) -> List[cv2.KeyPoint]:
       list_kps = []
       for kp_dict in data:
-        angle = kp_dict.get('angle'),
-        class_id = kp_dict.get('class_id'),
+        # angle = kp_dict.get('angle'),
+        # class_id = kp_dict.get('class_id'),
         ptl = kp_dict.get('pt'),
         x = ptl[0][0]
         y = ptl[0][1]
-        octave = kp_dict.get('octave'),
-        response = kp_dict.get('response'),
+        # octave = kp_dict.get('octave'),
+        # response = kp_dict.get('response'),
         size = kp_dict.get('size')
         # kp = cv2.KeyPoint(x, y, size, angle, response, octave, class_id)
         kp = cv2.KeyPoint(x, y, size)
@@ -90,7 +88,9 @@ class FlowIOUtilsH5Py():
     self._db.create_dataset(fn, data=data)
     return
 
-  def list_of_lists_np_arrays_writer(self, fn: str, data: List[List[np.ndarray]]) -> None:
+  def list_of_lists_np_arrays_writer(self,
+                                     fn: str,
+                                     data: List[List[np.ndarray]]) -> None:
     keys = self._db.keys()
     if fn in keys:
       del self._db[fn]
@@ -103,10 +103,9 @@ class FlowIOUtilsH5Py():
     #   # contour_arr = np.pad(contour, ((0, 0),(0, 0),(0, 0)))
     #   contour_arr = np.pad(contour, (0, 0))
     #   # contour_arr[:len(contour)] = contour
-    
+
     self._db.create_dataset(fn, data=data)
     return
-
 
   def json_writer(self, fn: str, data: Dict) -> None:
     keys = self._db.keys()
@@ -130,13 +129,13 @@ class FlowIOUtilsH5Py():
       list_dict = []
       for kp in data:
         kp_dict = {
-          'angle': kp.angle,
-          'class_id': kp.class_id,
-          'pt': kp.pt,
-          'octave': kp.octave,
-          'response': kp.response,
-          'size': kp.size
-          }
+            'angle': kp.angle,
+            'class_id': kp.class_id,
+            'pt': kp.pt,
+            'octave': kp.octave,
+            'response': kp.response,
+            'size': kp.size
+        }
         list_dict.append(kp_dict)
       return list_dict
 
@@ -145,8 +144,8 @@ class FlowIOUtilsH5Py():
 # Cleaner
   def data_cleaner(self, ext: str) -> None:
     extension = ext
-    
-    def _cleaner( fn: str):
+
+    def _cleaner(fn: str):
       keys = self._db.keys()
       if fn in keys:
         del self._db[fn]

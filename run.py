@@ -40,14 +40,14 @@ def set_runtime_environment(cfg):
 
 # Main function
 def main(**kwargs):
-  cfg = readJson('./cfg/cfg.json')
+  ws = readJson(kwargs.get("ws"))
+  model = FlowModel(ws)
+
+  cfg_path = './cfg/cfg.json'
+  cfg = readJson(cfg_path)
   set_runtime_environment(cfg)
 
-  path = cfg.get('storage-path')
-  ws = readJson(kwargs.get("ws"))
-
-  model = FlowModel(ws)
-  config = FlowStorageConfig(path)
+  config = FlowStorageConfig(cfg)
   storage = FlowStorage(config, model.get_as_ws())
  
   for state in storage.storage:

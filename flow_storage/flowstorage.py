@@ -1,13 +1,13 @@
-import copy
 from typing import Dict, List
+
 import operation_loader
 
 from .flowioutils import FlowIOUtils
 from .flowstorageconfig import FlowStorageConfig
 from .flowstatestorage import FlowStateStorage
-from .flowstateiodata import FlowStateIOData
 from .flowdataref import FlowDataRef
-from .flowtypes import FlowDataType, FlowIOType
+from .flowtypes import FlowDataType
+
 
 class FlowStorage():
   '''
@@ -20,7 +20,7 @@ class FlowStorage():
       self._utils = FlowIOUtils(config)
       self._init_strorage()
       return
-  
+
   @property
   def storage(self) -> List[FlowStateStorage]:
     return self._storage
@@ -29,10 +29,9 @@ class FlowStorage():
     self._utils.impl.close()
     return
 
-    return
   def reset(self) -> None:
     # Clean all external storage data
-    self._utils.clean_ext_storage()         
+    self._utils.clean_ext_storage()
     return
 
   def _get_state_sorage(self, state_id: str) -> FlowStateStorage:
@@ -54,12 +53,12 @@ class FlowStorage():
       return state_storage.get_input_ref(ext_ref)
     return None
 
-  def get_state_input_ext_ref(self, state_id: str, int_ref: str) -> FlowDataRef:
+  def get_state_input_ext_ref(self, state_id: str,
+                              int_ref: str) -> FlowDataRef:
     state_storage: FlowStateStorage = self._get_state_sorage(state_id)
     if state_storage is not None:
       return state_storage.get_input_ext_data_ref(int_ref)
     return None
-
 
   def get_state_input_data(self, state_id: str) -> Dict:
     data = {}
@@ -140,23 +139,22 @@ class FlowStorage():
     cleaner(ref.ext_ref)
     return
 
-
 # Storage
   def get_state_storage_by_idx(self, idx: int) -> FlowStateStorage:
     return self.storage[idx]
 
   def set_state_storage_by_idx(self, idx: int, item: FlowStateStorage) -> None:
     self.storage.insert(idx, item)
-    return  
-  
+    return
+
   @staticmethod
   def _data_type_str_to_flow_type(dt_str: str) -> FlowDataType:
     data_types = {
-      "ndarray" : FlowDataType.NP_ARRAY,
-      "List[ndarray]" : FlowDataType.LIST_NP_ARRAYS,
-      "List[List[ndarray]]" : FlowDataType.LIST_OF_LISTS_NP_ARRAYS,
-      "List[Tuple[uint]]" : FlowDataType.LIST_TUPLES,
-      "List[KeyPoint]" : FlowDataType.LIST_KPNTS,
+        "ndarray": FlowDataType.NP_ARRAY,
+        "List[ndarray]": FlowDataType.LIST_NP_ARRAYS,
+        "List[List[ndarray]]": FlowDataType.LIST_OF_LISTS_NP_ARRAYS,
+        "List[Tuple[uint]]": FlowDataType.LIST_TUPLES,
+        "List[KeyPoint]": FlowDataType.LIST_KPNTS,
     }
     return data_types.get(dt_str, FlowDataType.JSON)
 
@@ -166,19 +164,21 @@ class FlowStorage():
       if 'info' in step.keys():
         continue
       exec = step.get('exec')
-      st_id  = f'{i-1}-{exec.split(".")[1]}'
+      st_id = f'{i-1}-{exec.split(".")[1]}'
       st_storage = FlowStateStorage(st_id)
 
       # Create referenses
       func = operation_loader.get(exec)
-      (_, _, input_refs, output_refs) = operation_loader.parse_oper_doc(func.__doc__)
+      (_, _, input_refs, output_refs) = \
+          operation_loader.parse_oper_doc(func.__doc__)
       #  input data references:
       # internal refs - from operatiom definitions
       # external refs - from step links or the same as internal
       for input_ref in input_refs:
         if exec != 'glbstm.begin':
           internal_ref = f'{input_ref[0: input_ref.index(":")].strip()}'
-          dtype_str = input_ref[input_ref.index(':')+1: input_ref.index(';')].strip()
+          dtype_str = \
+              input_ref[input_ref.index(':') + 1: input_ref.index(';')].strip()
           dtype = self._data_type_str_to_flow_type(dtype_str)
           data_ref = FlowDataRef(internal_ref)
           data_ref.data_type = dtype
@@ -187,7 +187,7 @@ class FlowStorage():
           prev_output_refs = prev_step.get('output_refs', None)
           if prev_output_refs is not None:
             for prev_output_ref in prev_output_refs:
-              prev_ref = prev_output_ref[0: prev_output_ref.index(":")].strip()              
+              prev_ref = prev_output_ref[0: prev_output_ref.index(":")].strip()
               if prev_ref is not None and prev_ref == internal_ref:
                 prev_external_ref = f'{i-2}-{prev_exec}-{prev_ref.strip()}'
                 data_ref.ext_ref = prev_external_ref
@@ -199,14 +199,16 @@ class FlowStorage():
               data_ref.ext_ref = link
               data_ref.is_link = True
           st_storage.input_data.set_data_ref(data_ref)
-        
+
       #  output data references:
       for output_ref in output_refs:
         if exec != 'glbstm.end':
-          internal_ref = f'{output_ref[0: output_ref.index(":")].strip()}'
-          dtype_str = output_ref[output_ref.index(':')+1: output_ref.index(';')].strip()
+          idx1 = output_ref.index(':')
+          idx2 = output_ref.index(';')
+          internal_ref = f'{output_ref[0: idx1].strip()}'
+          dtype_str = output_ref[idx1 + 1: idx2].strip()
           dtype = self._data_type_str_to_flow_type(dtype_str)
-          external_ref = f'{i-1}-{exec}-{output_ref[0: output_ref.index(":")].strip()}'
+          external_ref = f'{i-1}-{exec}-{output_ref[0: idx1].strip()}'
           data_ref = FlowDataRef(internal_ref, external_ref, dtype)
           st_storage.output_data.set_data_ref(data_ref)
 
@@ -218,8 +220,9 @@ class FlowStorage():
         data_ref = FlowDataRef(internal_ref, external_ref, dtype)
         st_storage.cache_data.set_data_ref(data_ref)
 
-      self.set_state_storage_by_idx(i-1, st_storage)
-      # save current refs for usage on the next step like default values of input refs
-      prev_step['exec'] = exec 
+      self.set_state_storage_by_idx(i - 1, st_storage)
+      # save current refs for usage on the next
+      # step like default values of input refs
+      prev_step['exec'] = exec
       prev_step['output_refs'] = output_refs
     return

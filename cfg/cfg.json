@@ -4,5 +4,8 @@
       "../modules-and-worksheets/modules",
       "../modules-and-worksheets/modules-common"
     ],
-    "storage-path": "../data/storage"
+    "storage": {
+      "type": "fs",
+      "location": "../data/storage_fs"
+    }
   }

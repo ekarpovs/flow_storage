@@ -1,11 +1,10 @@
 '''
 '''
 
-from typing import Dict, List
-
 from .flowdataref import FlowDataRef
 from .flowstateiodata import FlowStateIOData
-from .flowtypes import FlowDataType, FlowIOType
+from .flowtypes import FlowIOType
+
 
 class FlowStateStorage():
   def __init__(self, state_id: str) -> None:
@@ -50,4 +49,3 @@ class FlowStateStorage():
 
   def get_input_ext_data_ref(self, int_ref: str) -> FlowDataRef:
     return self.input_data.get_ext_data_ref(int_ref)
-  
